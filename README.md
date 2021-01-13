@@ -27,8 +27,9 @@ For each computer, the following is recorded:
 - `cd` to the directory with the script file
 - Import the module: `Import-Module ".\Report-AMTStatus.psm1"`
 - Run the module, e.g.:
-    - `Report-AMTStatus -Computers "computername1"`
-    - `Report-AMTStatus -Computers "computername1","computername2" -Username "admin"`
+    - `Report-AMTStatus -Computers "computer-name-01"`
+	- `Report-AMTStatus -Computers "computer-name-*"`
+    - `Report-AMTStatus -Computers "computer-name-01","computer-name-3*" -Username "admin"`
     - `Report-AMTStatus -Collection "Collection Name" -Username "user" -Password "pass"`
     - `Report-AMTStatus -Collection "Collection Name" -Username "user1","user2" -Password "user1pass","user2pass"`
 
@@ -41,6 +42,12 @@ For each computer, the following is recorded:
 
 ### -Computers
 Required if not using `-Collection`. An array of strings representing computer names on which to query AMT.
+
+### -OUDN
+Optional string.  
+The OU distinguished name of the OU to limit the computername search to.  
+Default is `"OU=Desktops,OU=Engineering,OU=Urbana,DC=ad,DC=uillinois,DC=edu"`.  
+Only relevant if using `-Computers`.  
 
 ### -Collection
 Required if not using `-Computers`. A string representing an SCCM collection from which to pull a list of computer names on which to query AMT.

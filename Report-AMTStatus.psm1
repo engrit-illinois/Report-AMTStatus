@@ -7,6 +7,8 @@ function Report-AMTStatus {
 		[Parameter(Position=0,Mandatory=$true,ParameterSetName="Array")]
 		[string[]]$Computers,
 		
+		[string]$OUDN = "OU=Desktops,OU=Engineering,OU=Urbana,DC=ad,DC=uillinois,DC=edu",
+		
 		[Parameter(Position=0,Mandatory=$true,ParameterSetName="Collection")]
 		[string]$Collection,
 		
@@ -99,9 +101,9 @@ function Report-AMTStatus {
 		log "$($e.InvocationInfo.PositionMessage.Split("`n")[0])" -l ($l + 1)
 	}
 	
-	function Get-CompNameList($compNames) {
+	function Get-CompNameString($compNames) {
 		$list = ""
-		foreach($name in $compNames) {
+		foreach($name in @($compNames)) {
 			$list = "$list, $name"
 		}
 		$list = $list.Substring(2,$list.length - 2) # Remove leading ", "
@@ -112,8 +114,12 @@ function Report-AMTStatus {
 		log "Getting list of computer names..."
 		if($Computers) {
 			log "List was given as an array." -l 1 -v 1
-			$compNames = $Computers
-			$list = Get-CompNameList $compNames
+			$compNames = @()
+			foreach($query in @($Computers)) {
+				$thisQueryComps = (Get-ADComputer -Filter "name -like '$query'" -SearchBase $OUDN | Select Name).Name
+				$compNames += @($thisQueryComps)
+			}
+			$list = Get-CompNameString $compNames
 			log "Found $($compNames.count) computers in given array: $list." -l 1
 		}
 		elseif($Collection) {
@@ -138,7 +144,7 @@ function Report-AMTStatus {
 					$comps = $comps | Sort -Property @{Expression = {$_.ClientActiveStatus}; Descending = $true}, @{Expression = {$_.Name}; Descending = $false}
 					
 					$compNames = $comps.Name
-					$list = Get-CompNameList $compNames
+					$list = Get-CompNameString $compNames
 					log "Found $($compNames.count) computers in `"$Collection`" collection: $list." -l 1
 				}
 			}
