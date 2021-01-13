@@ -45,7 +45,7 @@ Required if not using `-Collection`. An array of strings representing computer n
 
 ### -OUDN
 Optional string.  
-The OU distinguished name of the OU to limit the computername search to.  
+The distinguished name of the OU to limit the computername search to.  
 Default is `"OU=Desktops,OU=Engineering,OU=Urbana,DC=ad,DC=uillinois,DC=edu"`.  
 Only relevant if using `-Computers`.  
 
