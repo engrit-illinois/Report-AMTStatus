@@ -4,14 +4,14 @@ This Powershell module queries a list of computers to find out whether they resp
 If so, various AMT information about the computer is gathered and output.  
 Additionally, computers which are found to respond to AMT queries, and which are powered off, or in hibernation can optionally be force booted.  
 
-### Input
+# Input
 It takes an list of computer names (or an SCCM collection name), and a one or more sets of credentials, used to authenticate to AMT on the given computers.
 
-### Output
+# Output
 Progress is output to screen and logged to a log file.  
 Results and gathered data are output to screen and exported to a csv file.  
 
-### Behavior
+# Behavior
 
 For each computer, the following is recorded:  
 - The result of a ping
@@ -21,7 +21,7 @@ For each computer, the following is recorded:
 - The result of querying AMT for the Make/Model
 - Which given set of credentials worked
 
-# Instructions
+# Usage
 - Download `Report-AMTStatus.psm1`
 - Open a Powershell console
 - `cd` to the directory with the script file
@@ -33,7 +33,7 @@ For each computer, the following is recorded:
     - `Report-AMTStatus -Collection "Collection Name" -Username "user" -Password "pass"`
     - `Report-AMTStatus -Collection "Collection Name" -Username "user1","user2" -Password "user1pass","user2pass"`
 
-### Prerequisites
+# Prerequisites
 - If using the `-Collection` parameter, Powershell console must be run by a user with read permissions to the relevant content in SCCM.
 
 # Parameters
@@ -150,4 +150,4 @@ You can change the default value near the top of the script.
 - If a computer fails to respond to an AMT query, or none of the provided credential sets were successful, subsequent AMT queries will be skipped, to save on time.
 - The script is optimized so that subsequent AMT queries will use the known good credentials from previous queries to the same computer, if there are any.
 - The script is intentionally designed to query computers sequentially, to avoid invasive busts of network traffic. For querying large collections, expect to run it overnight.
-- By mseng3
+- By mseng3. See my other projects here: https://github.com/mmseng/code-compendium.
