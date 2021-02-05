@@ -567,6 +567,7 @@ function Report-AMTStatus {
 		else {
 			if($compsData) {
 				$csvPath = $LogPath.Replace('.log','.csv')
+				$compsData = $compsData | Select ComputerName,Ponged,Firmware,WorkingCred,KnownError,Make,Model,PowerStateID,PowerStateDesc,ForceBooted
 				log "Exporting data to: `"$csvPath`"..."
 				$compsData | Export-Csv -Encoding ascii -NoTypeInformation -Path $csvPath
 				log "Done exporting data." -v 2
