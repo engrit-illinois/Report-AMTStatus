@@ -298,7 +298,7 @@ function Report-AMTStatus {
 		$forceBooted = "No"
 		if($requested) {
 			log "-ForceBootIfOff was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
-			$captureForceBootResult = Invoke-AMTForceBoot $comp -Operation PowerOn -Device HardDrive -Credential $cred
+			$captureForceBootResult = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
 			$forceBooted = "Yes"
 		}
 		else {
