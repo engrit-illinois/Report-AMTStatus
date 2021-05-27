@@ -22,11 +22,8 @@ For each computer, the following is recorded:
 - Which given set of credentials worked
 
 # Usage
-- Download `Report-AMTStatus.psm1`
-- Open a Powershell console
-- `cd` to the directory with the script file
-- Import the module: `Import-Module ".\Report-AMTStatus.psm1"`
-- Run the module, e.g.:
+1. Download `Report-AMTStatus.psm1` to `$HOME\Documents\WindowsPowerShell\Modules\Report-AMTStatus\Report-AMTStatus.psm1`.
+2. Run it, e.g.:
     - `Report-AMTStatus -Computers "computer-name-01"`
 	- `Report-AMTStatus -Computers "computer-name-*"`
     - `Report-AMTStatus -Computers "computer-name-01","computer-name-3*" -Username "admin"`
