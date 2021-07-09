@@ -224,6 +224,8 @@ function Report-AMTStatus {
 			$desc = $state."Power State Description"
 			$id = $state."Power State ID"
 			
+			$forceBooted = "No"
+			
 			# If the result has the data we want
 			if($desc) {
 				log "Get-AMTPowerState call received response: `"$desc`"." -l 3
@@ -256,18 +258,39 @@ function Report-AMTStatus {
 				elseif($desc -eq "Off (S5)") {
 					log "Computer is powered off." -l 4
 					$workingCred = $credNum
-					$forceBooted = Force-Boot $ForceBootIfOff $comp $cred
+					if($ForceBootIfOff) {
+						log "-ForceBootIfOff was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
+						$result = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
+						$forceBooted = "Yes"
+					}
+					else {
+						log "-ForceBootIfOff was not specified." -l 4 -v 1
+					}
 				}
 				# If it responds and is hibernated
 				elseif($desc -eq "Hibernate (S4)") {
 					log "Computer is hibernated." -l 4
 					$workingCred = $credNum
-					$forceBooted = Force-Boot $ForceBootIfHibernated $comp $cred
+					if($ForceBootIfHibernated) {
+						log "-ForceBootIfHibernated was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
+						$result = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
+						$forceBooted = "Yes"
+					}
+					else {
+						log "-ForceBootIfHibernated was not specified." -l 4 -v 1
+					}
 				}
 				elseif($desc -eq "Standby (S3)") {
 					log "Computer is in standby." -l 4
 					$workingCred = $credNum
-					$forceBooted = Force-Boot $ForceBootIfStandby $comp $cred
+					if($ForceBootIfStandby) {
+						log "-ForceBootIfStandby was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
+						$result = Invoke-AMTPowerManagement -ComputerName $comp -Operation PowerOn -Credential $cred
+						$forceBooted = "Yes"
+					}
+					else {
+						log "-ForceBootIfStandby was not specified." -l 4 -v 1
+					}
 				}
 				else {
 					log "Unrecognized result." -l 4
