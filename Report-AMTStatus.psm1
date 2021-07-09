@@ -28,6 +28,8 @@ function Report-AMTStatus {
 		
 		[switch]$ForceBootIfHibernated,
 		
+		[switch]$ForceBootIfStandby,
+		
 		[switch]$SkipFWVer,
 		
 		[switch]$NoLog,
@@ -265,6 +267,7 @@ function Report-AMTStatus {
 				elseif($desc -eq "Standby (S3)") {
 					log "Computer is in standby." -l 4
 					$workingCred = $credNum
+					$forceBooted = Force-Boot $ForceBootIfStandby $comp $cred
 				}
 				else {
 					log "Unrecognized result." -l 4
@@ -297,12 +300,12 @@ function Report-AMTStatus {
 	function Force-Boot($requested, $comp, $cred) {
 		$forceBooted = "No"
 		if($requested) {
-			log "-ForceBootIfOff was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
+			log "-ForceBootIf<state> was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
 			$captureForceBootResult = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
 			$forceBooted = "Yes"
 		}
 		else {
-			log "-ForceBootIfOff was not specified." -l 4 -v 1
+			log "-ForceBootIf<state> was not specified." -l 4 -v 1
 		}
 		$forceBooted
 	}
