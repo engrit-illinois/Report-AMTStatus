@@ -284,7 +284,7 @@ function Report-AMTStatus {
 					log "Computer is in standby." -l 4
 					$workingCred = $credNum
 					if($ForceBootIfStandby) {
-						log "-ForceBootIfStandby was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
+						log "-ForceBootIfStandby was specified. Waking computer with Invoke-AMTPowerManagement..." -l 4
 						$result = Invoke-AMTPowerManagement -ComputerName $comp -Operation PowerOn -Credential $cred
 						$forceBooted = "Yes"
 					}
