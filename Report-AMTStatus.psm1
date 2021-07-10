@@ -205,7 +205,8 @@ function Report-AMTStatus {
 	
 	function Get-State($comp, $creds, $credNum=0) {
 		$cred = @($creds)[$credNum]
-		log "Calling Get-AMTPowerState with credential set #$($credNum + 1)/$(@($creds).count) (user: `"$($cred.UserName)`")..." -l 2
+		$credNumFriendly = $credNum + 1
+		log "Calling Get-AMTPowerState with credential set #$($credNumFriendly)/$(@($creds).count) (user: `"$($cred.UserName)`")..." -l 2
 		
 		try {
 			$state = Get-AMTPowerState -ComputerName $comp -Credential $cred
@@ -310,7 +311,7 @@ function Report-AMTStatus {
 			log "Get-AMTPowerState returned no result." -l 3
 			$desc = "Call failed"
 		}
-		log "Done calling Get-AMTPowerState for credential set #$credNum." -l 2 -v 2
+		log "Done calling Get-AMTPowerState for credential set #$credNumFriendly." -l 2 -v 2
 		
 		$result = [PSCustomObject]@{
 			id = $id
