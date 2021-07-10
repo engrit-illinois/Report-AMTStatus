@@ -75,15 +75,18 @@ An array of strings representing the passwords of defined sets of credentials to
 ## Optional force boot parameters
 
 ### -ForceBootIfOff
-Optional switch. If specified, force boots computers which respond, and are in the off state.
+Optional switch. If specified, force boots computers which respond, and are in the Off (S5) state.
 
 ### -ForceBootIfHibernated
-Optional switch. If specified, force boots computers which respond, and are in the hibernated state.
+Optional switch. If specified, force boots computers which respond, and are in the Hibernated (S4) state.
 
-### Notes about force boot parameters
+### -WakeIfStandby
+Optional switch. If specified, wakes computers which respond, and are in the Standby (S3) state.
+
+### Notes about force boot/wake parameters
 The force boot functionality was added as a special feature, since it doesn't really belong in a script intended for reporting.  
 It was just more convenient to add this functionality than to recreate all of the logic in a separate script.  
-If you're using the script solely to boot computers which are powered off or in hibernation, then you may want to make use of the following optional switches, which are only useful for gathering information.  
+If you're using the script solely to boot computers which are powered off/in hibernation/standby, then you may want to make use of the following optional switches, which are only useful for gathering information.  
 - `-NoLog`
 - `-NoCSV`
 - `-SkipPing`
