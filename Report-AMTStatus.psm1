@@ -310,7 +310,7 @@ function Report-AMTStatus {
 			log "Get-AMTPowerState returned no result." -l 3
 			$desc = "Call failed"
 		}
-		log "Done calling Get-AMTPowerState." -l 2 -v 2
+		log "Done calling Get-AMTPowerState for credential set #$credNum." -l 2 -v 2
 		
 		$result = [PSCustomObject]@{
 			id = $id
