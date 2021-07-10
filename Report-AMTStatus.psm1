@@ -28,7 +28,7 @@ function Report-AMTStatus {
 		
 		[switch]$ForceBootIfHibernated,
 		
-		[switch]$ForceBootIfStandby,
+		[switch]$WakeIfStandby,
 		
 		[switch]$SkipFWVer,
 		
@@ -283,13 +283,13 @@ function Report-AMTStatus {
 				elseif($desc -eq "Standby (S3)") {
 					log "Computer is in standby." -l 4
 					$workingCred = $credNum
-					if($ForceBootIfStandby) {
-						log "-ForceBootIfStandby was specified. Waking computer with Invoke-AMTPowerManagement..." -l 4
+					if($WakeIfStandby) {
+						log "-WakeIfStandby was specified. Waking computer with Invoke-AMTPowerManagement..." -l 4
 						$result = Invoke-AMTPowerManagement -ComputerName $comp -Operation PowerOn -Credential $cred
 						$forceBooted = "Yes"
 					}
 					else {
-						log "-ForceBootIfStandby was not specified." -l 4 -v 1
+						log "-WakeIfStandby was not specified." -l 4 -v 1
 					}
 				}
 				else {
