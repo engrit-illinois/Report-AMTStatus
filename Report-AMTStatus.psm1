@@ -318,7 +318,7 @@ function Report-AMTStatus {
 			desc = $desc
 			workingCred = $workingCred
 			forceBooted = $forceBooted
-			bootResult = $bootResult.Status
+			bootResult = $bootResult
 		}
 		$result
 	}
@@ -500,7 +500,7 @@ function Report-AMTStatus {
 		$stateDesc = $state.desc
 		$workingCred = $state.workingCred
 		$forceBooted = $state.forceBooted
-		$bootResult = $state.bootResult
+		$bootResult = $state.bootResult.Status
 		log "id: `"$stateID`", desc: `"$stateDesc`", workingCred: `"$workingCred`", forceBooted: `"$forceBooted`", bootResult: `"$bootResult`"" -v 3
 		# Don't bother with more calls if we know they're not going to succeed
 		if($state.workingCred -lt 0) {
