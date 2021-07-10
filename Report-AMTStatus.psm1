@@ -260,7 +260,7 @@ function Report-AMTStatus {
 					$workingCred = $credNum
 					if($ForceBootIfOff) {
 						log "-ForceBootIfOff was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
-						$result = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
+						$bootResult = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
 						$forceBooted = "Yes"
 					}
 					else {
@@ -273,7 +273,7 @@ function Report-AMTStatus {
 					$workingCred = $credNum
 					if($ForceBootIfHibernated) {
 						log "-ForceBootIfHibernated was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
-						$result = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
+						$bootResult = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
 						$forceBooted = "Yes"
 					}
 					else {
@@ -285,7 +285,7 @@ function Report-AMTStatus {
 					$workingCred = $credNum
 					if($WakeIfStandby) {
 						log "-WakeIfStandby was specified. Waking computer with Invoke-AMTPowerManagement..." -l 4
-						$result = Invoke-AMTPowerManagement -ComputerName $comp -Operation PowerOn -Credential $cred
+						$bootResult = Invoke-AMTPowerManagement -ComputerName $comp -Operation PowerOn -Credential $cred
 						$forceBooted = "Yes"
 					}
 					else {
@@ -316,6 +316,7 @@ function Report-AMTStatus {
 			desc = $desc
 			workingCred = $workingCred
 			forceBooted = $forceBooted
+			bootResult = $bootResult
 		}
 		$result
 	}
@@ -510,7 +511,8 @@ function Report-AMTStatus {
 		$stateDesc = $state.desc
 		$workingCred = $state.workingCred
 		$forceBooted = $state.forceBooted
-		log "id: `"$stateID`", desc: `"$stateDesc`", workingCred: `"$workingCred`", forceBooted: `"$forceBooted`"" -v 3
+		$bootResult = $state.bootResult
+		log "id: `"$stateID`", desc: `"$stateDesc`", workingCred: `"$workingCred`", forceBooted: `"$forceBooted`", bootResult: `"$bootResult`"" -v 3
 		# Don't bother with more calls if we know they're not going to succeed
 		if($state.workingCred -lt 0) {
 			log "AMT on computer did not respond, or denied authentication for Get-AMTPowerState call. Skipping further AMT calls." -l 2
@@ -560,6 +562,7 @@ function Report-AMTStatus {
 			"PowerStateID" = $stateID
 			"PowerStateDesc" = $stateDesc
 			"ForceBooted" = $forceBooted
+			"BootResult" = $bootResult
 			"Firmware" = $fwv
 			"WorkingCred" = ($state.workingCred + 1) # Translating from index to human speech
 		}
@@ -593,7 +596,7 @@ function Report-AMTStatus {
 		else {
 			if($compsData) {
 				$csvPath = $LogPath.Replace('.log','.csv')
-				$compsData = $compsData | Select ComputerName,Ponged,Firmware,WorkingCred,KnownError,Make,Model,PowerStateID,PowerStateDesc,ForceBooted
+				$compsData = $compsData | Select ComputerName,Ponged,Firmware,WorkingCred,KnownError,Make,Model,PowerStateID,PowerStateDesc,ForceBooted,BootResult
 				log "Exporting data to: `"$csvPath`"..."
 				$compsData | Export-Csv -Encoding ascii -NoTypeInformation -Path $csvPath
 				log "Done exporting data." -v 2
