@@ -247,6 +247,7 @@ function Report-AMTStatus {
 						$desc = $newState.desc
 						$workingCred = $newState.workingCred
 						$forceBooted = $newState.forceBooted
+						$bootResult = $newState.bootResult
 					}
 				}
 				# If it responds and is powered on
@@ -316,22 +317,9 @@ function Report-AMTStatus {
 			desc = $desc
 			workingCred = $workingCred
 			forceBooted = $forceBooted
-			bootResult = $bootResult
+			bootResult = $bootResult.Status
 		}
 		$result
-	}
-	
-	function Force-Boot($requested, $comp, $cred) {
-		$forceBooted = "No"
-		if($requested) {
-			log "-ForceBootIf<state> was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
-			$captureForceBootResult = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
-			$forceBooted = "Yes"
-		}
-		else {
-			log "-ForceBootIf<state> was not specified." -l 4 -v 1
-		}
-		$forceBooted
 	}
 	
 	function Get-FW($comp, $cred) {
