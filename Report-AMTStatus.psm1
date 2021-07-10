@@ -263,6 +263,7 @@ function Report-AMTStatus {
 					if($ForceBootIfOff) {
 						log "-ForceBootIfOff was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
 						$bootResult = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
+						log "Result: `"$($bootResult.Status)`"." -l 5
 						$forceBooted = "Yes"
 					}
 					else {
@@ -276,6 +277,7 @@ function Report-AMTStatus {
 					if($ForceBootIfHibernated) {
 						log "-ForceBootIfHibernated was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
 						$bootResult = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
+						log "Result: `"$($bootResult.Status)`"." -l 5
 						$forceBooted = "Yes"
 					}
 					else {
@@ -288,6 +290,7 @@ function Report-AMTStatus {
 					if($WakeIfStandby) {
 						log "-WakeIfStandby was specified. Waking computer with Invoke-AMTPowerManagement..." -l 4
 						$bootResult = Invoke-AMTPowerManagement -ComputerName $comp -Operation PowerOn -Credential $cred
+						log "Result: `"$($bootResult.Status)`"." -l 5
 						$forceBooted = "Yes"
 					}
 					else {
