@@ -22,7 +22,7 @@ For each computer, the following is recorded:
 - Which given set of credentials worked
 
 # Usage
-1. Download `Report-AMTStatus.psm1` to `$HOME\Documents\WindowsPowerShell\Modules\Report-AMTStatus\Report-AMTStatus.psm1`.
+1. Download `Report-AMTStatus.psm1` to the appropriate subdirectory of your PowerShell [modules directory](https://github.com/engrit-illinois/how-to-install-a-custom-powershell-module).
 2. Run it, e.g.:
     - `Report-AMTStatus -Computers "computer-name-01"`
 	- `Report-AMTStatus -Computers "computer-name-*"`
