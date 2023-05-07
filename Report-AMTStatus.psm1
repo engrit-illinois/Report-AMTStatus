@@ -16,7 +16,7 @@ function Report-AMTStatus {
 		
 		[string[]]$Password,
 		
-		[int]$CredDelaySec = 1,
+		[int]$CredDelaySec = 0,
 		
 		[switch]$SkipPing,
 		
@@ -244,6 +244,7 @@ function Report-AMTStatus {
 		if($state) {
 			log "Get-AMTPowerState call returned a result." -l 3 -v 1
 			$desc = $state."Power State Description"
+			$reason = $state.Reason
 			$id = $state."Power State ID"
 			
 			$forceBooted = "No"
@@ -261,22 +262,20 @@ function Report-AMTStatus {
 					$newCredNum = $credNum + 1
 					if($newCredNum -ge @($creds).count) {
 						log "No more credentials to try." -l 5
+						$desc = "No working credentials."
 					}
 					else {
 						log "Trying next set of credentials..." -l 5
 						
-						log "Waiting $CredDelaySec seconds to avoid flooding with attempts..." -l 6
-						Start-Sleep -Seconds $CredDelaySec
+						if($CredDelaySec -gt 0) {
+							log "Waiting $CredDelaySec seconds to avoid flooding with attempts..." -l 6
+							Start-Sleep -Seconds $CredDelaySec
+						}
 						
-						# This seems to fail out after 8 consecutive attempts, even if I try waiting up to 20 seconds between attempts.
-						# Either AMT has some sort of brute force protection which requires longer delays,
-						# or there some bug in this code's recursion that causes errors in the Intelvpro Powershell module.
-						# I don't feel like it's brute force protection, because running one attempt which fails 8 times and then errors out,
-						# and then running the same thing again immediately afterward with no delay allows another 8 attempts before erroring out.
-						# But I can't think of a reason why the recursion would work 8 times, but no more.
 						$newState = Get-State $comp $creds $newCredNum
 						$id = $newState.id
 						$desc = $newState.desc
+						$reason = $newState.reason
 						$workingCred = $newState.workingCred
 						$forceBooted = $newState.forceBooted
 						$bootResult = $newState.bootResult
@@ -328,8 +327,37 @@ function Report-AMTStatus {
 						log "-WakeIfStandby was not specified." -l 4 -v 1
 					}
 				}
+				elseif($desc -eq "Exception Thrown") {
+					log "Exception thrown by Get-AMTPowerState!" -l 4
+					log "Reason: `"$reason`"." -l 5
+					
+					if($reason -like "*Password can contain between 8 to 32 characters*") {
+						log "Credentials invalid." -l 4
+						$newCredNum = $credNum + 1
+						if($newCredNum -ge @($creds).count) {
+							log "No more credentials to try." -l 5
+							$desc = "No working credentials."
+						}
+						else {
+							log "Trying next set of credentials..." -l 5
+							
+							if($CredDelaySec -gt 0) {
+								log "Waiting $CredDelaySec seconds to avoid flooding with attempts..." -l 6
+								Start-Sleep -Seconds $CredDelaySec
+							}
+							
+							$newState = Get-State $comp $creds $newCredNum
+							$id = $newState.id
+							$desc = $newState.desc
+							$reason = $newState.reason
+							$workingCred = $newState.workingCred
+							$forceBooted = $newState.forceBooted
+							$bootResult = $newState.bootResult
+						}
+					}
+				}
 				else {
-					log "Unrecognized result: `"$desc`"." -l 4
+					log "Unrecognized result: `"$($desc): $($reason)`"." -l 4
 					# Could potentially return valid states I don't know about
 					# In which case $workingCred would incorrectly be -1
 					# So newly discovered valid states should be given their own elseif block
@@ -338,7 +366,7 @@ function Report-AMTStatus {
 			}
 			else {
 				log "Get-AMTPowerState call returned an unexpected result!" -l 3
-				$desc = "Unexpected result"
+				$desc = "Unexpected result: `"$($desc): $($reason)`""
 			}
 		}
 		else {
@@ -350,6 +378,7 @@ function Report-AMTStatus {
 		$result = [PSCustomObject]@{
 			id = $id
 			desc = $desc
+			reason = $reason
 			workingCred = $workingCred
 			forceBooted = $forceBooted
 			bootResult = $bootResult
@@ -532,16 +561,18 @@ function Report-AMTStatus {
 		$error = ""
 		$stateID = $state.id
 		$stateDesc = $state.desc
+		$stateReason = $state.reason
 		$workingCred = $state.workingCred
 		$forceBooted = $state.forceBooted
 		$bootResult = $state.bootResult.Status
-		log "id: `"$stateID`", desc: `"$stateDesc`", workingCred: `"$workingCred`", forceBooted: `"$forceBooted`", bootResult: `"$bootResult`"" -v 3
+		log "id: `"$stateID`", desc: `"$stateDesc`", reason: `"$stateReason`", workingCred: `"$workingCred`", forceBooted: `"$forceBooted`", bootResult: `"$bootResult`"" -v 3
 		# Don't bother with more calls if we know they're not going to succeed
 		if($state.workingCred -lt 0) {
 			log "AMT on computer did not respond, or denied authentication for Get-AMTPowerState call. Skipping further AMT calls." -l 2
 			$error = $stateDesc
 			$stateID = ""
 			$stateDesc = ""
+			$stateReason = $stateReason
 			$fwv = ""
 			$make = ""
 			$model = ""
@@ -580,6 +611,7 @@ function Report-AMTStatus {
 			"ComputerName" = $comp
 			"Ponged" = $ponged
 			"KnownError" = $error
+			"ErrorReason" = $stateReason
 			"Make" = $make
 			"Model" = $model
 			"PowerStateID" = $stateID
@@ -619,7 +651,7 @@ function Report-AMTStatus {
 		else {
 			if($compsData) {
 				$csvPath = $LogPath.Replace('.log','.csv')
-				$compsData = $compsData | Select ComputerName,Ponged,Firmware,WorkingCred,KnownError,Make,Model,PowerStateID,PowerStateDesc,ForceBooted,BootResult
+				$compsData = $compsData | Select ComputerName,Ponged,Firmware,WorkingCred,KnownError,ErrorReason,Make,Model,PowerStateID,PowerStateDesc,ForceBooted,BootResult
 				log "Exporting data to: `"$csvPath`"..."
 				$compsData | Export-Csv -Encoding ascii -NoTypeInformation -Path $csvPath
 				log "Done exporting data." -v 2
