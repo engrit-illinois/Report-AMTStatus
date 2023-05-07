@@ -23,7 +23,7 @@ For each computer, the following is recorded:
 
 # Usage
 1. Download and install the Intelvpro PowerShell module from the Intel AMT SDK. This custom module was most recently tested and developed for version 16.0.5.1 of the AMT SDK. How to do that is outside the scope of this readme.
-2. If using v16.0.5.1 (and probably other versions) of the AMT SDK, overwrite the contents of the Intelvpro module's `Get-AMTHardwareAsset.ps1` file with the contents of `Get-AMTHardwareAsset-fixed.ps1` file provided in this repo. It fixes bugs caused by poor error checking in that Intelvpro module file. Not doing this may cause a lot of information to be missing from the generated report.
+2. If using v16.0.5.1 (and probably other versions) of the AMT SDK, overwrite the contents of the Intelvpro module's `Get-AMTHardwareAsset.ps1` file with the contents of the `Get-AMTHardwareAsset-fixed.ps1` file provided in this repo. It fixes bugs caused by poor error checking in that Intelvpro module file. Not doing this may cause a lot of information to be missing from the generated report.
 3. Download `Report-AMTStatus.psm1` to the appropriate subdirectory of your PowerShell [modules directory](https://github.com/engrit-illinois/how-to-install-a-custom-powershell-module).
 4. Run it, e.g.:
     - `Report-AMTStatus -Computers "computer-name-01"`
