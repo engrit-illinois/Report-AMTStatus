@@ -262,7 +262,7 @@ function Report-AMTStatus {
 					$newCredNum = $credNum + 1
 					if($newCredNum -ge @($creds).count) {
 						log "No more credentials to try." -l 5
-						$desc = "No working credentials."
+						$desc = "No working credentials"
 					}
 					else {
 						log "Trying next set of credentials..." -l 5
@@ -336,7 +336,7 @@ function Report-AMTStatus {
 						$newCredNum = $credNum + 1
 						if($newCredNum -ge @($creds).count) {
 							log "No more credentials to try." -l 5
-							$desc = "No working credentials."
+							$desc = "No working credentials"
 						}
 						else {
 							log "Trying next set of credentials..." -l 5
@@ -357,7 +357,7 @@ function Report-AMTStatus {
 					}
 				}
 				else {
-					log "Unrecognized result: `"$($desc): $($reason)`"." -l 4
+					log "Unrecognized result: `"$($desc): $($reason)`"" -l 4
 					# Could potentially return valid states I don't know about
 					# In which case $workingCred would incorrectly be -1
 					# So newly discovered valid states should be given their own elseif block
