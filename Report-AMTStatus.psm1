@@ -453,13 +453,17 @@ function Report-AMTStatus {
 	function Get-HW($comp, $cred) {
 		#log "Calling Get-AMTHardwareAsset with credential set #$($credNum + 1)/$(@($creds).count) (user: `"$($cred.UserName)`")..." -l 2
 		log "Calling Get-AMTHardwareAsset with known good credentials..." -l 2
+		
+		# Recursion in the Traverse() function of the Get-AMTHardwareAsset cmdlet in the Intelvpro Powershell module of the AMT SDK v16.0.5.1 isn't implemented with adequate error checking, and can return both an error AND legitimate data, which breaks this try/catch.
+		# Instead of trying to work around it here, I just added a workaround in Get-AMTHardwareAsset.ps1.
 		try {
-			$hw = Get-AMTHardwareAsset -ComputerName $comp -Credential $cred
-			
+			$hw = Get-AMTHardwareAsset -ComputerName $comp -Credential $cred -ErrorAction "Stop"
 		}
 		catch {
 			log "Get-AMTHardwareAsset call failed!" -l 3
 			Log-Error $_ 4
+			
+			log ($hw.GetType() | Out-String)
 		}
 		
 		# If there was any result
@@ -491,31 +495,23 @@ function Report-AMTStatus {
 			}
 			# If it responds with an unrecognized value
 			else {
-				# It's probably a the object we wanted
+				# It's probably the object we wanted
 				
 				# If the result has the data we want
-				$hwCS = $hw | Where { $_.PSParentPath -like "IntelvPro\AmtSystem::\HardwareAssets\ComputerSystem*" }
-				if($hwCS) {
-					$make = ($hwCS | Where { $_.Name -eq "Manufacturer" }).Value
-					if($make) {
-						$model = ($hwCS | Where { $_.Name -eq "Model" }).Value
-						if($model) {
-							log "Make: $make, Model: $model" -l 3
-						}
-						else {
-							log "Get-AMTHardwareAsset call returned an unexpected result! No Model info." -l 3
-							$error = "Unexpected result: no model"
-						}
-					}
-					else {
-						log "Get-AMTHardwareAsset call returned an unexpected result! No Manufacturer info." -l 3
-						$error = "Unexpected result: no manufacturer"
-					}
-				}
-				else {
-					log "Get-AMTHardwareAsset call returned an unexpected result! No ComputerSystem info." -l 3
-					$error = "Unexpected result: no computersystem"
-				}
+				$csMake = $hw | Where { $_.PSParentPath -like "*ComputerSystem*" -and $_.Name -eq "Manufacturer" } | Select -ExpandProperty "Value"
+				$csModel = $hw | Where { $_.PSParentPath -like "*ComputerSystem*" -and $_.Name -eq "Model" } | Select -ExpandProperty "Value"
+				$csSerial = $hw | Where { $_.PSParentPath -like "*ComputerSystem*" -and $_.Name -eq "SerialNumber" } | Select -ExpandProperty "Value"
+				
+				$biosVer = $hw | Where { $_.PSParentPath -like "*BIOS\Primary BIOS*" -and $_.Name -eq "Version" } | Select -ExpandProperty "Value"
+				$biosDate = $hw | Where { $_.PSParentPath -like "*BIOS\Primary BIOS*" -and $_.Name -eq "ReleaseDate" } | Select -ExpandProperty "Value"
+				
+				$memAccess = $hw | Where { $_.PSParentPath -like "*Memory\Memory 0*" -and $_.Name -eq "Access" } | Select -ExpandProperty "Value"
+				
+				$moboModel = $hw | Where { $_.PSParentPath -like "*Baseboard\Managed System Base Board*" -and $_.Name -eq "Model" } | Select -ExpandProperty "Value"
+				$moboVer = $hw | Where { $_.PSParentPath -like "*Baseboard\Managed System Base Board*" -and $_.Name -eq "Version" } | Select -ExpandProperty "Value"
+				$moboSerial = $hw | Where { $_.PSParentPath -like "*Baseboard\Managed System Base Board*" -and $_.Name -eq "SerialNumber" } | Select -ExpandProperty "Value"
+				
+				log "Make: `"$csMake`", Model: `"$csModel`", Serial: `"$csSerial`", BiosVer: `"$biosVer`", BiosDate: `"$biosDate`", MemAccess: `"$memAccess`", MoboModel: `"$moboModel`", MoboVer: `"$moboVer`", MoboSerial: `"$moboSerial`"" -l 3
 			}
 		}
 		else {
@@ -525,8 +521,15 @@ function Report-AMTStatus {
 		log "Done calling Get-AMTHardwareAsset." -l 2 -v 2
 		
 		$result = [PSCustomObject]@{
-			"Make" = $make
-			"Model" = $model
+			"Make" = $csMake
+			"Model" = $csModel
+			"Serial" = $csSerial
+			"BiosVer" = $biosVer
+			"BiosDate" = $biosDate
+			"MemAccess" = $memAccess
+			"MoboModel" = $moboModel
+			"MoboVer" = $moboVer
+			"MoboSerial" = $moboSerial
 			"Error" = $error
 		}
 		$result
@@ -574,8 +577,15 @@ function Report-AMTStatus {
 			$stateDesc = ""
 			$stateReason = $stateReason
 			$fwv = ""
-			$make = ""
-			$model = ""
+			$csMake = ""
+			$csModel = ""
+			$csSerial = ""
+			$biosVer = ""
+			$biosDate = ""
+			$memAccess = ""
+			$moboModel = ""
+			$moboVer = ""
+			$moboSerial = ""
 		}
 		else {
 			log "Get-AMTPowerState succeeded." -l 2
@@ -590,19 +600,40 @@ function Report-AMTStatus {
 			
 			if($SkipModel) {
 				log "-SkipModel was specified. Skipping Get-AMTHardwareAsset call." -l 2 -v 1
-				$make = "Skipped"
-				$model = "Skipped"
+				$csMake = "Skipped"
+				$csModel = "Skipped"
+				$csSerial = "Skipped"
+				$biosVer = "Skipped"
+				$biosDate = "Skipped"
+				$memAccess = "Skipped"
+				$moboModel = "Skipped"
+				$moboVer = "Skipped"
+				$moboSerial = "Skipped"
 			}
 			else {
 				log "Continuing with Get-AMTHardwareAsset call." -l 2
 				$hw = Get-HW $comp $creds[$state.workingCred]
 				if($hw.Error) {
-					$make = "Error"
-					$model = "Error"
+					$csMake = "Error"
+					$csModel = "Error"
+					$csSerial = "Error"
+					$biosVer = "Error"
+					$biosDate = "Error"
+					$memAccess = "Error"
+					$moboModel = "Error"
+					$moboVer = "Error"
+					$moboSerial = "Error"
 				}
 				else {
-					$make = $hw.Make
-					$model = $hw.Model
+					$csMake = $hw.Make
+					$csModel = $hw.Model
+					$csSerial = $hw.Serial
+					$biosVer = $hw.BiosVer
+					$biosDate = $hw.BiosDate
+					$memAccess = $hw.MemAccess
+					$moboModel = $hw.MoboModel
+					$moboVer = $hw.MoboVer
+					$moboSerial = $hw.MoboSerial
 				}
 			}
 		}
@@ -612,8 +643,15 @@ function Report-AMTStatus {
 			"Ponged" = $ponged
 			"KnownError" = $error
 			"ErrorReason" = $stateReason
-			"Make" = $make
-			"Model" = $model
+			"Make" = $csMake
+			"Model" = $csModel
+			"Serial" = $csSerial
+			"BiosVer" = $biosVer
+			"BiosDate" = $biosDate
+			"MemAccess" = $memAccess
+			"MoboModel" = $moboModel
+			"MoboVer" = $moboVer
+			"MoboSerial" = $moboSerial
 			"PowerStateID" = $stateID
 			"PowerStateDesc" = $stateDesc
 			"ForceBooted" = $forceBooted
@@ -644,6 +682,10 @@ function Report-AMTStatus {
 		$compsData
 	}
 	
+	function Select-CompsData($compsData) {
+		$compsData | Select ComputerName,Ponged,KnownError,ErrorReason,WorkingCred,Firmware,PowerStateID,PowerStateDesc,ForceBooted,BootResult,Make,Model,Serial,BiosVer,BiosDate,MemAccess,MoboModel,MoboVer,MoboSerial | Sort ComputerName
+	}
+	
 	function Export-CompsData($compsData) {
 		if($NoCSV) {
 			log "-NoCSV was specified. Skipping export of gathered data." -v 1
@@ -651,7 +693,6 @@ function Report-AMTStatus {
 		else {
 			if($compsData) {
 				$csvPath = $LogPath.Replace('.log','.csv')
-				$compsData = $compsData | Select ComputerName,Ponged,Firmware,WorkingCred,KnownError,ErrorReason,Make,Model,PowerStateID,PowerStateDesc,ForceBooted,BootResult
 				log "Exporting data to: `"$csvPath`"..."
 				$compsData | Export-Csv -Encoding ascii -NoTypeInformation -Path $csvPath
 				log "Done exporting data." -v 2
@@ -663,7 +704,7 @@ function Report-AMTStatus {
 	}
 	
 	function Print-CompsData($compsData) {
-		$compsData | Format-Table
+		$compsData | Format-Table *
 	}
 	
 	function Do-Stuff {
@@ -671,6 +712,7 @@ function Report-AMTStatus {
 		if(@($creds).count -gt 0) {
 			$comps = Get-CompNames
 			$compsData = Get-CompsData $comps $creds
+			$compsData = Select-CompsData $compsData
 			Export-CompsData $compsData
 			Print-CompsData $compsData
 		}
