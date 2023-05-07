@@ -103,6 +103,17 @@ function Report-AMTStatus {
 		log "$($e.InvocationInfo.PositionMessage.Split("`n")[0])" -l ($l + 1)
 	}
 	
+	function count($array) {
+		$count = 0
+		if($array) {
+			# If we didn't check $array in the above if statement, this would return 1 if $array was $null
+			# i.e. @().count = 0, @($null).count = 1
+			$count = @($array).count
+			# We can't simply do $array.count, because if it's null, that would throw an error due to trying to access a method on a null object
+		}
+		$count
+	}
+	
 	function Get-CompNameString($compNames) {
 		$list = ""
 		foreach($name in @($compNames)) {
@@ -121,8 +132,12 @@ function Report-AMTStatus {
 				$thisQueryComps = (Get-ADComputer -Filter "name -like '$query'" -SearchBase $OUDN | Select Name).Name
 				$compNames += @($thisQueryComps)
 			}
-			$list = Get-CompNameString $compNames
-			log "Found $($compNames.count) computers in given array: $list." -l 1
+			$compNamesCount = count $compNames
+			log "Found $compNamesCount computers in given array." -l 1
+			if($compNamesCount -gt 0) {
+				$list = Get-CompNameString $compNames
+				log "Computers: $list." -l 2
+			}
 		}
 		elseif($Collection) {
 			log "List was given as a collection. Getting members of collection: `"$Collection`"..." -l 1 -v 1
@@ -144,10 +159,14 @@ function Report-AMTStatus {
 					# Sort by active status, with active clients first, just in case inactive clients might come online later
 					# Then sort by name, just for funsies
 					$comps = $comps | Sort -Property @{Expression = {$_.ClientActiveStatus}; Descending = $true}, @{Expression = {$_.Name}; Descending = $false}
-					
 					$compNames = $comps.Name
-					$list = Get-CompNameString $compNames
-					log "Found $($compNames.count) computers in `"$Collection`" collection: $list." -l 1
+					
+					$compNamesCount = count $compNames
+					log "Found $compNamesCount computers in `"$Collection`" collection." -l 1
+					if($compNamesCount -gt 0) {
+						$list = Get-CompNameString $compNames
+						log "Computers: $list." -l 2
+					}
 				}
 			}
 			
