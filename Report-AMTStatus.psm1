@@ -16,6 +16,8 @@ function Report-AMTStatus {
 		
 		[string[]]$Password,
 		
+		[int]$CredDelaySec = 1,
+		
 		[switch]$SkipPing,
 		
 		[switch]$SkipModel,
@@ -262,6 +264,16 @@ function Report-AMTStatus {
 					}
 					else {
 						log "Trying next set of credentials..." -l 5
+						
+						log "Waiting $CredDelaySec seconds to avoid flooding with attempts..." -l 6
+						Start-Sleep -Seconds $CredDelaySec
+						
+						# This seems to fail out after 8 consecutive attempts, even if I try waiting up to 20 seconds between attempts.
+						# Either AMT has some sort of brute force protection which requires longer delays,
+						# or there some bug in this code's recursion that causes errors in the Intelvpro Powershell module.
+						# I don't feel like it's brute force protection, because running one attempt which fails 8 times and then errors out,
+						# and then running the same thing again immediately afterward with no delay allows another 8 attempts before erroring out.
+						# But I can't think of a reason why the recursion would work 8 times, but no more.
 						$newState = Get-State $comp $creds $newCredNum
 						$id = $newState.id
 						$desc = $newState.desc
@@ -317,7 +329,7 @@ function Report-AMTStatus {
 					}
 				}
 				else {
-					log "Unrecognized result." -l 4
+					log "Unrecognized result: `"$desc`"." -l 4
 					# Could potentially return valid states I don't know about
 					# In which case $workingCred would incorrectly be -1
 					# So newly discovered valid states should be given their own elseif block
