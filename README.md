@@ -2,9 +2,7 @@
 
 This Powershell module queries a list of computers to find out whether they respond to AMT queries, using cmdlets provided by the IntelvPro Powershell module. For more info about this module, see here: https://wiki.illinois.edu/wiki/display/engritprivate/Using+Powershell+to+control+Intel+AMT.
 If so, various AMT information about the computer is gathered and output.  
-Additionally, computers which are found to respond to AMT queries, and which are powered off, or in hibernation can optionally be force booted.  
-
-For a quickly-hacked-together asynchronous version of this module, see [Report-AMTStatusAsync](https://github.com/engrit-illinois/Report-AMTStatusAsync).  
+Additionally, computers which are found to respond to AMT queries, and which are powered off, or in hibernation can optionally be force booted.    
 
 # Input
 It takes an list of computer names (or an SCCM collection name), and a one or more sets of credentials, used to authenticate to AMT on the given computers.
