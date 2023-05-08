@@ -536,6 +536,7 @@ function Report-AMTStatus {
 	}
 	
 	function Get-CompData($comp, $creds, $progress) {
+		$started = Get-Date
 		log "Processing computer $progress`: `"$comp`"..." -l 1
 	
 		# Determine whether machine is online
@@ -638,6 +639,9 @@ function Report-AMTStatus {
 			}
 		}
 		
+		$ended = Get-Date
+		$runtime = $ended - $started
+		
 		$compData = [PSCustomObject]@{
 			"ComputerName" = $comp
 			"Ponged" = $ponged
@@ -658,6 +662,7 @@ function Report-AMTStatus {
 			"BootResult" = $bootResult
 			"Firmware" = $fwv
 			"WorkingCred" = ($state.workingCred + 1) # Translating from index to human speech
+			"Runtime" = $runtime
 		}
 		
 		log "Done processing computer: `"$comp`"." -l 1 -v 2
@@ -683,7 +688,7 @@ function Report-AMTStatus {
 	}
 	
 	function Select-CompsData($compsData) {
-		$compsData | Select ComputerName,Ponged,KnownError,ErrorReason,WorkingCred,Firmware,PowerStateID,PowerStateDesc,ForceBooted,BootResult,Make,Model,Serial,BiosVer,BiosDate,MemAccess,MoboModel,MoboVer,MoboSerial | Sort ComputerName
+		$compsData | Select ComputerName,Ponged,KnownError,ErrorReason,WorkingCred,Firmware,PowerStateID,PowerStateDesc,ForceBooted,BootResult,Make,Model,Serial,BiosVer,BiosDate,MemAccess,MoboModel,MoboVer,MoboSerial,Runtime | Sort ComputerName
 	}
 	
 	function Export-CompsData($compsData) {
@@ -708,6 +713,7 @@ function Report-AMTStatus {
 	}
 	
 	function Do-Stuff {
+		$started = Get-Date
 		$creds = Get-Creds
 		if(@($creds).count -gt 0) {
 			$comps = Get-CompNames
@@ -716,6 +722,9 @@ function Report-AMTStatus {
 			Export-CompsData $compsData
 			Print-CompsData $compsData
 		}
+		$ended = Get-Date
+		$runtime = $ended - $started
+		log "Runtime: $runtime"
 	}
 	
 	Do-Stuff
