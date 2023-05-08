@@ -33,7 +33,7 @@ For each computer, the following is recorded:
     - `Report-AMTStatus -Collection "Collection Name" -Username "user1","user2" -Password "user1pass","user2pass"`
 
 # Prerequisites
-- Only supports PowerShell v5.1. Technically this cmdlet (and it's async sister) run fine in PowerShell 7+, however the underlying IntelvPro/AMT cmdlets it makes use of do not. Under PowerShell 7+, they will not throw errors, but will fail to connect to remote machines which would otherwise respond properly under PowerShell 5.1.
+- Only supports PowerShell v5.1. Technically this cmdlet (and it's asynchronous sister, [Report-AMTStatusAsync](https://github.com/engrit-illinois/Report-AMTStatusAsync)) run fine in PowerShell 7+, however the underlying IntelvPro/AMT cmdlets it relies on do not. Under PowerShell 7+, they will not throw errors, but will fail to connect to remote machines which would otherwise respond properly under PowerShell 5.1.
 - If using the `-Collection` parameter, Powershell console must be run by a user with read permissions to the relevant content in SCCM.
 
 # Parameters
