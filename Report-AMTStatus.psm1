@@ -16,9 +16,13 @@ function Report-AMTStatus {
 		
 		[string[]]$Password,
 		
+		[switch]$Unencrypted,
+		
 		[int]$CredDelaySec = 0,
 		
 		[switch]$SkipPing,
+		
+		[switch]$SkipFWVer,
 		
 		[switch]$SkipModel,
 		
@@ -32,8 +36,6 @@ function Report-AMTStatus {
 		
 		[switch]$WakeIfStandby,
 		
-		[switch]$SkipFWVer,
-		
 		[switch]$NoLog,
 		
 		[string]$LogPath="c:\engrit\logs\Report-AMTStatus_$(Get-Date -Format `"yyyy-MM-dd_HH-mm-ss-ffff`").log",
@@ -46,6 +48,17 @@ function Report-AMTStatus {
 		
 		[string]$CMPSModulePath="$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1"
 	)
+	
+	if($Unencrypted) {
+		$SECURE_PARAMS = @{}
+	}
+	else {
+		$SECURE_PARAMS = @{
+			TLS = $true
+			Port = 16993
+			AcceptSelfSignedCert = $true
+		}
+	}
 	
 	function log {
 		param (
@@ -230,7 +243,7 @@ function Report-AMTStatus {
 		log "Calling Get-AMTPowerState with credential set #$($credNumFriendly)/$(@($creds).count) (user: `"$($cred.UserName)`")..." -l 2
 		
 		try {
-			$state = Get-AMTPowerState -ComputerName $comp -Credential $cred
+			$state = Get-AMTPowerState -ComputerName $comp -Credential $cred @SECURE_PARAMS
 		}
 		catch {
 			log "Get-AMTPowerState call failed!" -l 3
@@ -292,7 +305,7 @@ function Report-AMTStatus {
 					$workingCred = $credNum
 					if($ForceBootIfOff) {
 						log "-ForceBootIfOff was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
-						$bootResult = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
+						$bootResult = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred @SECURE_PARAMS
 						log "Result: `"$($bootResult.Status)`"." -l 5
 						$forceBooted = "Yes"
 					}
@@ -306,7 +319,7 @@ function Report-AMTStatus {
 					$workingCred = $credNum
 					if($ForceBootIfHibernated) {
 						log "-ForceBootIfHibernated was specified. Booting computer with Invoke-AMTForceBoot..." -l 4
-						$bootResult = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred
+						$bootResult = Invoke-AMTForceBoot -ComputerName $comp -Operation PowerOn -Device HardDrive -Credential $cred @SECURE_PARAMS
 						log "Result: `"$($bootResult.Status)`"." -l 5
 						$forceBooted = "Yes"
 					}
@@ -319,7 +332,7 @@ function Report-AMTStatus {
 					$workingCred = $credNum
 					if($WakeIfStandby) {
 						log "-WakeIfStandby was specified. Waking computer with Invoke-AMTPowerManagement..." -l 4
-						$bootResult = Invoke-AMTPowerManagement -ComputerName $comp -Operation PowerOn -Credential $cred
+						$bootResult = Invoke-AMTPowerManagement -ComputerName $comp -Operation PowerOn -Credential $cred @SECURE_PARAMS
 						log "Result: `"$($bootResult.Status)`"." -l 5
 						$forceBooted = "Yes"
 					}
@@ -390,7 +403,7 @@ function Report-AMTStatus {
 		#log "Calling Get-AMTFirmwareVersion with credential set #$($credNum + 1)/$(@($creds).count) (user: `"$($cred.UserName)`")..." -l 2
 		log "Calling Get-AMTFirmwareVersion with known good credentials..." -l 2
 		try {
-			$fw = Get-AMTFirmwareVersion -ComputerName $comp -Credential $cred
+			$fw = Get-AMTFirmwareVersion -ComputerName $comp -Credential $cred @SECURE_PARAMS
 		}
 		catch {
 			log "Get-AMTFirmwareVersion call failed!" -l 3
@@ -457,7 +470,7 @@ function Report-AMTStatus {
 		# Recursion in the Traverse() function of the Get-AMTHardwareAsset cmdlet in the Intelvpro Powershell module of the AMT SDK v16.0.5.1 isn't implemented with adequate error checking, and can return both an error AND legitimate data, which breaks this try/catch.
 		# Instead of trying to work around it here, I just added a workaround in Get-AMTHardwareAsset.ps1.
 		try {
-			$hw = Get-AMTHardwareAsset -ComputerName $comp -Credential $cred -ErrorAction "Stop"
+			$hw = Get-AMTHardwareAsset -ComputerName $comp -Credential $cred -ErrorAction "Stop" @SECURE_PARAMS
 		}
 		catch {
 			log "Get-AMTHardwareAsset call failed!" -l 3

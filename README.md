@@ -60,6 +60,13 @@ An array of strings representing the usernames of defined sets of credentials to
 Optional string.  
 An array of strings representing the passwords of defined sets of credentials to use while attempting to authenticate to AMT.  
 
+### -Unencrypted
+Optional switch.  
+If specified, the `-TLS`, `-Port 16993`, and `AcceptSelfSignedCert` parameters are omitted when calling AMT cmdlets.  
+As of something around v16.x.x.x of the AMT SDk/Intelvpro PowerShell module, unecrypted AMT connections were deprecated, making these new parameters necessary.  
+The exact version where the deprecation caused failures when omitting these parameters is unknown to me, but it was sometime between v15.0.0.1 and 16.0.5.1.  
+The `-AcceptSeldSignedCert` parameter was only added in v16.0.4.1, so if you're using an AMT version older than that, then you may need to specify this switch.  
+
 ### Notes about credential parameters
 
 - If specifying more than one, an equal number of usernames and passwords must be specified.  
