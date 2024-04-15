@@ -476,7 +476,7 @@ function Report-AMTStatus {
 			log "Get-AMTHardwareAsset call failed!" -l 3
 			Log-Error $_ 4
 			
-			log ($hw.GetType() | Out-String)
+			if($hw) { log ($hw.GetType() | Out-String) }
 		}
 		
 		# If there was any result
