@@ -46,7 +46,9 @@ function Report-AMTStatus {
 		
 		[string]$Provider="sccmcas.ad.uillinois.edu",
 		
-		[string]$CMPSModulePath="$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1"
+		[string]$CMPSModulePath="$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1",
+		
+		[switch]$DisablePsVersionCheck
 	)
 	
 	if($Unencrypted) {
@@ -98,6 +100,31 @@ function Report-AMTStatus {
 				}
 			}
 		}
+	}
+	
+	function Validate-SupportedPowershellVersion {
+		if(-not (Test-SupportedPowershellVersion)) {
+			Throw "Unsupported PowerShell version!"
+		}
+	}
+	
+	function Test-SupportedPowershellVersion {
+		if($DisablePsVersionCheck) {
+			log "-DisablePsVersionCheck was specified. Skipping PowerShell version check."
+			return $true
+		}
+		
+		log "This custom module only supports PowerShell v5.1. Checking PowerShell version..."
+		
+		$ver = $Host.Version
+		log "PowerShell version is `"$($ver.Major).$($ver.Minor)`"." -L 1
+		if(
+			($ver.Major -eq 5) -and
+			($ver.Minor -eq 1)
+		) {
+			return $true
+		}
+		return $false
 	}
 
 	function Prep-SCCM {
@@ -726,6 +753,7 @@ function Report-AMTStatus {
 	}
 	
 	function Do-Stuff {
+		Validate-SupportedPowershellVersion
 		$started = Get-Date
 		$creds = Get-Creds
 		if(@($creds).count -gt 0) {
